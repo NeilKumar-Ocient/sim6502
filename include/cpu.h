@@ -25,12 +25,12 @@ enum flag_t {
 //flag bit masks
 static constexpr uint8_t carryMask = 0x01;
 static constexpr uint8_t zeroMask = 0x02;
-static constexpr uint8_t interuptDisableMask = 0x04;
+static constexpr uint8_t interruptDisableMask = 0x04;
 static constexpr uint8_t decimalMask = 0x08;
 static constexpr uint8_t breakMask = 0x10;
 static constexpr uint8_t overflowMask = 0x20;
 static constexpr uint8_t negativeMask = 0x40;
-static constexpr std::array<uint8_t, 7> flagMasks = {carryMask, zeroMask, interuptDisableMask, decimalMask, breakMask, overflowMask, negativeMask};
+static constexpr std::array<uint8_t, 7> flagMasks = {carryMask, zeroMask, interruptDisableMask, decimalMask, breakMask, overflowMask, negativeMask};
 
 //the cpu, this is responsible for reading program instructions and executing them
 class cpu_t {
@@ -95,6 +95,7 @@ public:
 		m_y = value;
 	}
 
+	//TODO might want to have this return a uint8_t as 1 or 0 instead of a bool
 	//gets the given flag
 	bool getFlag(flag_t flag) {
 		uint8_t flagIndex = static_cast<uint8_t>(flag);

@@ -4,8 +4,8 @@
 #include <ctime>
 #include <cassert>
 
-#define NANO 1000 * 1000 * 1000
-#define CONVERSION_FACTOR 1000 * NANO //1 trillion nanoseconds divided by frequency in mHz gives us the period in nanoseconds
+static constexpr size_t NANO =  1000UL * 1000UL * 1000UL;
+static constexpr size_t frequencyConversionFactor =  1000UL * NANO; //1 trillion nanoseconds divided by frequency in mHz gives us the period in nanoseconds
 
 typedef struct timespec timeSpec_t;
 
@@ -13,7 +13,7 @@ typedef struct timespec timeSpec_t;
 class cpuClock_t {
 public:
 	//constructor, takes in a frequency in mHz
-	cpuClock_t(size_t frequency) : m_frequency(frequency), m_period(CONVERSION_FACTOR / m_frequency) {}
+	cpuClock_t(size_t frequency) : m_frequency(frequency), m_period(frequencyConversionFactor / m_frequency) {}
 
 	//starts the clock at the current time
 	void start() {
@@ -34,7 +34,7 @@ public:
 		assert(delta < m_period);
 
 		//TODO wait the remaining number of nanoseconds somehow
-		size_t leftover = m_period - delta;
+		//size_t leftover = m_period - delta;
 
 		//update the checkpoint, can't just manually add to it b/c we could have clock drift that way
 		//since the time it takes for this function to execute it not exact, especially the leftover waiting

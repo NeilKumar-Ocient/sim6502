@@ -9,7 +9,7 @@ static constexpr uint16_t stackOffset = 256;
 static constexpr size_t smallProgramSize = addressSpaceSize / 4;
 static constexpr size_t bigProgramSize = smallProgramSize * 2;
 static constexpr size_t programOffset = addressSpaceSize / 2;
-static constexpr size_t cpuClockFrequency =  1789772500 //the clock frequency for the cpu in mHz, not in Hz b/c we want to run at a fraction of a Hz without using a double
+static constexpr size_t cpuClockFrequency =  1789772500; //the clock frequency for the cpu in mHz, not in Hz b/c we want to run at a fraction of a Hz without using a double
 
 //flag enum
 enum flag_t {
@@ -25,11 +25,12 @@ enum flag_t {
 //flag bit masks
 static constexpr uint8_t carryMask = 0x01;
 static constexpr uint8_t zeroMask = 0x02;
-static constexpr uint8_t interuptDisbleMask = 0x04;
+static constexpr uint8_t interuptDisableMask = 0x04;
 static constexpr uint8_t decimalMask = 0x08;
 static constexpr uint8_t breakMask = 0x10;
 static constexpr uint8_t overflowMask = 0x20;
 static constexpr uint8_t negativeMask = 0x40;
+static constexpr std::array<uint8_t, 7> flagMasks = {carryMask, zeroMask, interuptDisableMask, decimalMask, breakMask, overflowMask, negativeMask};
 
 //the cpu, this is responsible for reading program instructions and executing them
 class cpu_t {
@@ -95,94 +96,21 @@ public:
 	}
 
 	//gets the given flag
-	template<flag_t FLAG>
-	bool getFlag() {
-		if constexpr(FLAG == flag_t::CARRY) {
-			return (m_flag & carryMask) == carryMask;
-		}
-		else if constexpr(FLAG == flat_t::ZERO) {
-			return (m_flag & zeroMask) == zeroMask;
-		}
-		else if constexpr(FLAG == flat_t::INTERUPT_DISABLE) {
-			return (m_flag & interuptDisableMAsk) == interuptDisableMask;
-		}
-		else if constexpr(FLAG == flat_t::DECIMAL) {
-			return (m_flag & decimalMask) == decimalMAsk;
-		}
-		else if constexpr(FLAG == flat_t::BREAK) {
-			return (m_flag & breakMask) == breakMask;
-		}
-		else if constexpr(FLAG == flat_t::OVERFLOW) {
-			return (m_flag & overflowMask) == overflowMask;
-		}
-		else if constexpr(FLAG == flat_t::NEGATIVE) {
-			return (m_flag & negativeMask) == negativeMask;
-		}
-		else {
-			//not possible
-			throw;
-		}
+	bool getFlag(flag_t flag) {
+		uint8_t flagIndex = static_cast<uint8_t>(flag);
+		return (m_flags & flagMasks[flagIndex]) == flagMasks[flagIndex];
 	}
 
 	//sets the given flag
-	template<flag_t FLAG>
-	void setFlag() {
-		if constexpr(FLAG == flag_t::CARRY) {
-			m_flag |= carryMask;
-		}
-		else if constexpr(FLAG == flat_t::ZERO) {
-			m_flag |= zeroMask;
-		}
-		else if constexpr(FLAG == flat_t::INTERUPT_DISABLE) {
-			m_flag |= interuptDisableMask;
-		}
-		else if constexpr(FLAG == flat_t::DECIMAL) {
-			m_flag |= decimalMask;
-		}
-		else if constexpr(FLAG == flat_t::BREAK) {
-			m_flag |= breakMask;
-		}
-		else if constexpr(FLAG == flat_t::OVERFLOW) {
-			m_flag |= overflowMask;
-		}
-		else if constexpr(FLAG == flat_t::NEGATIVE) {
-			m_flag |= negativeMask;
-		}
-		else {
-			//not possible
-			throw;
-		}
+	void setFlag(flag_t flag) {
+		uint8_t flagIndex = static_cast<uint8_t>(flag);
+		m_flags |= flagMasks[flagIndex];
 	}
 
-	//TODO maybe consider giving ~mask their own constexpr to save time if needed
-	//clears the given flag
 	template<flag_t FLAG>
-	void clearFlag() {
-		if constexpr(FLAG == flag_t::CARRY) {
-			m_flag &= ~carryMask
-		}
-		else if constexpr(FLAG == flat_t::ZERO) {
-			m_flag &= ~zeroMask
-		}
-		else if constexpr(FLAG == flat_t::INTERUPT_DISABLE) {
-			m_flag &= ~interuptDisableMask
-		}
-		else if constexpr(FLAG == flat_t::DECIMAL) {
-			m_flag &= ~decimalMask
-		}
-		else if constexpr(FLAG == flat_t::BREAK) {
-			m_flag &= ~breakMask
-		}
-		else if constexpr(FLAG == flat_t::OVERFLOW) {
-			m_flag &= ~overflowMask
-		}
-		else if constexpr(FLAG == flat_t::NEGATIVE) {
-			m_flag &= ~negativeMask
-		}
-		else {
-			//not possible
-			throw;
-		}
+	void clearFlag(flag_t flag) {
+		uint8_t flagIndex = static_cast<uint8_t>(flag);
+		m_flags &= ~flagMasks[flagIndex];
 	}
 
 	void pushStack(uint8_t value) {

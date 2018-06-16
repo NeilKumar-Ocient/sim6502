@@ -17,3 +17,4 @@ Phase 1 Goals:
 	-Implement a way to turn off assertions and debug logs through make flags
 	-Maybe implement the extra cycles for instructions that cross page boundaries, this is easy to do once we know we crossed one,
 	 but detecting that a page boundary was crossed is more difficult.  I'm ok with not doing this.
+	-write unit tests for all of this

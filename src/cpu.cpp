@@ -21,5 +21,9 @@ uint8_t cpu_t::run() {
 
 uint16_t cpu_t::executeInstruction(uint8_t opCode) {
 	//TODO switch based on the opCode to run the correct instruction
+	switch(opCode) {
+		default :
+			throw;
+	}
 	return 0;
 }

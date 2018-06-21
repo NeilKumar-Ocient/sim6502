@@ -30,7 +30,9 @@ public:
 		timeSpec_t endTime;
 		size_t timeDelta = 0;
 
-		for(size_t i = 1; i < 5000; i+=2) {
+		size_t i = 1;
+
+		while(true) {
 			timeDelta=0;
 			size_t totalCycleSample = i * 1000000;
 			size_t cycleCount = 0;
@@ -43,22 +45,23 @@ public:
 			if(timeDelta/10 == (m_timeCycle.size()+1))
 			{
 				m_timeCycle.emplace_back(i);
-				//this will move to logger
+				//TODO - this will move to logger
 				std::cout << "added to cycleList" << std::endl;
+				i+=2;
 			} else if(timeDelta/10 > (m_timeCycle.size()+1)) {
-				//also move this to logger
+				//TODO - also move this to logger
 				std::cout << "numCycles: " << std::to_string(i) <<  "\ttimeElapsed: " << std::to_string(timeDelta) <<"\t currentValIndexWouldBe: " << std::to_string(timeDelta/10) <<  "\tTimeWeAreLookingFor: " << std::to_string(m_timeCycle.size()+1) << std::endl;
 				i-=2;	
 			} else {
-				//should we move this to a logger or remove the else case entirely?
 				std::cout << "numCycles: " << std::to_string(i) <<  "\ttimeElapsed: " << std::to_string(timeDelta) <<"\t currentValIndexWouldBe: " << std::to_string(timeDelta/10) <<  "\tTimeWeAreLookingFor: " << std::to_string(m_timeCycle.size()+1) << std::endl;
+				i+=2;
 			}
 
 			if((m_timeCycle.size()+1)*10 > m_period){
 				break;
 			}
 		}
-		//uncomment below to have it print list in constructor
+		//uncomment below to have it print vector when cpu is constructed
 		/*
 		for(size_t i = 0; i < m_timeCycle.size(); i ++) {
 			std::cout << "time: " << std::to_string((i+1)*10) << "\tCycleCount: " << std::to_string(m_timeCycle[i]) << std::endl;

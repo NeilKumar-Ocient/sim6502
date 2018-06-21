@@ -117,12 +117,12 @@ private:
 	
 	void waitForTime(long timeToWait) {
 		size_t cycle = 0;
-		size_t numCycles = m_timeCycle[(timeToWait-25)/10];
 		if(timeToWait < 25) {
 			while(cycle < m_timeCycle[0]) {
 				cycle++;
 			}
 		} else {
+			size_t numCycles = m_timeCycle[(timeToWait-25)/10];
 			while(cycle < numCycles) {
 				cycle++;
 			}

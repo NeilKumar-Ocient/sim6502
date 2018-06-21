@@ -106,7 +106,7 @@ private:
 	size_t m_period; //the time delta between cycles determined by the frequency in nanoseconds
 	logger_t LOGGER; //the logger, is always copied from some other logger
 
-	std::vector<long> m_timeCycle;
+	std::vector<size_t> m_timeCycle;
 
 	//returns the number of nanoseconds between oldTime newTime
 	size_t timeElapsed(const timeSpec_t& oldTime, const timeSpec_t& newTime) {
@@ -116,13 +116,14 @@ private:
 	}
 	
 	void waitForTime(long timeToWait) {
-		long cycle = 0;
+		size_t cycle = 0;
+		size_t numCycles = m_timeCycle[(timeToWait-25)/10];
 		if(timeToWait < 25) {
 			while(cycle < m_timeCycle[0]) {
 				cycle++;
 			}
 		} else {
-			while(cycle < m_timeCycle[(timeToWait-25)/10]) {
+			while(cycle < numCycles) {
 				cycle++;
 			}
 		}	

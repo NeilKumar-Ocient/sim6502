@@ -114,6 +114,19 @@ private:
 		size_t newNano = (newTime.tv_sec * NANO) + newTime.tv_nsec;
 		return newNano - oldNano;
 	}
+	
+	void waitForTime(long timeToWait) {
+		long cycle = 0;
+		if(timeToWait < 25) {
+			while(cycle < m_timeCycle[0]) {
+				cycle++;
+			}
+		} else {
+			while(cycle < m_timeCycle[(timeToWait-25)/10]) {
+				cycle++;
+			}
+		}	
+	}
 };
 
 #endif

@@ -3,13 +3,10 @@
 
 #include <ctime>
 #include <cassert>
-<<<<<<< d9bee61b977b6965f1eaca1b6bf71e7b6403d847
 #include <chrono>
 #include "log.h"
-=======
 #include <vector>
 #include <iostream>
->>>>>>> added functionality to cpuClock constructor
 
 static constexpr size_t NANO =  1000UL * 1000UL * 1000UL;
 static constexpr size_t frequencyConversionFactor =  1000UL * NANO; //1 trillion nanoseconds divided by frequency in mHz gives us the period in nanoseconds
@@ -23,7 +20,7 @@ using timeSpec_t = struct timespec;
 class cpuClock_t {
 public:
 	//constructor, takes in a frequency in mHz
-	cpuClock_t(size_t frequency, const logger_t& logger) : m_frequency(frequency), m_period(frequencyConversionFactor / m_frequency), LOGGER(logger) {}
+	cpuClock_t(size_t frequency, const logger_t& logger) : m_frequency(frequency), m_period(frequencyConversionFactor / m_frequency), LOGGER(logger) {
 
 		//below code is used to initialize the vector we will use to determine how long to wait if we finish an instruction early
 		timeSpec_t startTime;
@@ -68,7 +65,6 @@ public:
 		}
 		*/
 	}
->>>>>>> added functionality to cpuClock constructor
 
 	//starts the clock at the current time
 	void start() {

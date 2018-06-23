@@ -3,6 +3,7 @@
 
 #include "cpuClock.h"
 #include "mmu.h"
+#include "log.h"
 #include <vector>
 
 static constexpr uint16_t stackOffset = 256;
@@ -37,8 +38,8 @@ class cpu_t {
 public:
 	//constructor, takes in an either 16K or 32K program and loads that into the higher memory addresses
 	//if a 16k program is passed in we load that into memory twice so that the high 32k is always used
-	cpu_t(const std::vector<uint8_t>& program) : m_clock(cpuClockFrequency),
-		m_pc(0), m_sp(255), m_a(0), m_x(0), m_y(0), m_flags(0)
+	cpu_t(const std::vector<uint8_t>& program, const std::string& logFile) :
+		LOGGER(logFile), m_clock(cpuClockFrequency, LOGGER), m_pc(0), m_sp(255), m_a(0), m_x(0), m_y(0), m_flags(0)
 	{
 			if(program.size() == smallProgramSize) {
 				//load the small program twice
@@ -136,6 +137,7 @@ public:
 	}
 
 private:
+	logger_t LOGGER; //the logger
 	//the clock and mmu
 	cpuClock_t m_clock;
 	mmu_t m_mmu;

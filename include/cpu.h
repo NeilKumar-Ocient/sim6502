@@ -136,6 +136,14 @@ public:
 		m_clock.cycle();
 	}
 
+	uint8_t read(uint16_t address) {
+		return m_mmu.read(address);
+	}
+
+	void write(uint16_t address, uint8_t value) {
+		m_mmu.write(address, value);
+	}
+
 private:
 	logger_t LOGGER; //the logger
 	//the clock and mmu

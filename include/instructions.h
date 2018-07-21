@@ -6,20 +6,57 @@
 //TODO may want to aggressively inline all of these
 //all of the possible address modes, used to template the instructions
 enum addressMode_t {
-	ZERO_PAGE = 0,
-	ZERO_PAGE_X = 1,
-	ZERO_PAGE_Y = 2,
-	ABSOLUTE = 3,
-	ABSOLUTE_X = 4,
-	ABSOLUTE_Y = 5,
-	INDIRECT = 6,
-	IMPLIED = 7,
-	ACCUMULATOR = 8,
-	IMMEDIATE = 9,
-	RELATIVE = 10,
-	INDIRECT_X = 11,
-	INDIRECT_Y = 12
+	ZERO_PAGE = 0, //pc += 2
+	ZERO_PAGE_X = 1, //pc += 2
+	ZERO_PAGE_Y = 2, //pc += 2
+	ABSOLUTE = 3, //pc += 3
+	ABSOLUTE_X = 4, //pc += 3
+	ABSOLUTE_Y = 5, //pc += 3
+	INDIRECT = 6, // pc += 3
+	IMPLIED = 7, //pc += 1
+	ACCUMULATOR = 8, //pc += 1
+	IMMEDIATE = 9, //pc += 2
+	RELATIVE = 10, //pc += 2 + bb, where bb is the value at pc + 1
+	INDIRECT_X = 11, //pc += 2
+	INDIRECT_Y = 12 // pc += 2
 };
+
+//the amount that the pc gets incremented for each address mode, some require extra logic on top of this like relative
+static constexpr std::array<uint8_t, 13> PC_INCREMENTS = {2, 2, 2, 3, 3, 3, 3, 1, 1, 2, 2, 2, 2};
+
+//a function that reads certain addresses based on the addressing mode, and fills in a general struct that contains arguments for all instructions/addressing modes
+struct args_t {
+	args_t() : m_arg1(0) {}
+	//TODO what else needs to go in here?
+	uint8_t m_arg1;
+};
+
+//a helper function that fills in an arguments struct based on the different addressing modes, used to reduce code copying
+template<addressMode_t MODE>
+args_t getArgs(cpu_t* cpu) {
+	args_t args;
+	if constexpr(MODE == addressMode_t::ZERO_PAGE) {
+		//read pc + 1
+		uint8_t zeroOffset = cpu->getPc() + 1;
+		assert(cpu->getPc() + 1 < 256); //just a sanity check
+		//get the value there and store that as the argument
+		args.m_arg1 = cpu->read(zeroOffset);
+		cpu->cycle();
+	}
+	//TODO write the rest of the cases
+	return args;
+}
+
+//a helper function that returns the new pc given the current pc, depends on addressing mode
+//for the relative mode, relativeArg is the additional value to be added if the branch was taken
+template<addressMode_t MODE>
+uint16_t getNewPc(uint16_t pc, int8_t relativeArg = 0) {
+	uint16_t newPc = pc + PC_INCREMENTS[MODE];
+	if constexpr(MODE == addressMode_t::RELATIVE) {
+		newPc = static_cast<int16_t>(newPc) + relativeArg;
+	}
+	return newPc;
+}
 
 /*
  * Arithmetic Instructions
@@ -70,7 +107,8 @@ uint16_t ROR(cpu_t* cpu) {
 //bitwise and with accumulator
 template<addressMode_t MODE>
 uint16_t AND(cpu_t* cpu) {
-	//TODO
+	args_t args = getArgs<MODE>(cpu);
+	cpu->setA(cpu->getA() & args.m_arg1);
 	return cpu->getPc();
 }
 

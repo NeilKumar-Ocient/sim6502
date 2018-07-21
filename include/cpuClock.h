@@ -9,20 +9,18 @@
 #include <iostream>
 
 static constexpr size_t NANO =  1000UL * 1000UL * 1000UL;
-static constexpr size_t frequencyConversionFactor =  1000UL * NANO; //1 trillion nanoseconds divided by frequency in mHz gives us the period in nanoseconds
+static constexpr size_t FREQUENCY_CONVERSION_FACTOR =  1000UL * NANO; //1 trillion nanoseconds divided by frequency in mHz gives us the period in nanoseconds
 
 using timeSpec_t = struct timespec;
-
-//TODO resting shows this is still too slow even when O2 is turned on and we only log errors while running a program that does nothing
-//I think it's b/c of threads getting swapping out, I think I need to pin the cpu to a core and have it never get unscheduled
 
 //the clock, used to make sure everything that should happen in 1 cycle does
 class cpuClock_t {
 public:
 	//constructor, takes in a frequency in mHz
-	cpuClock_t(size_t frequency, const logger_t& logger) : m_frequency(frequency), m_period(frequencyConversionFactor / m_frequency), LOGGER(logger) {
+	cpuClock_t(size_t frequency, const logger_t& logger) : m_frequency(frequency), m_period(FREQUENCY_CONVERSION_FACTOR / m_frequency), LOGGER(logger) {
 
 		//below code is used to initialize the vector we will use to determine how long to wait if we finish an instruction early
+		LOG_DEBUG("Starting cpuClock sampling");
 		timeSpec_t startTime;
 		timeSpec_t endTime;
 		size_t timeDelta = 0;
@@ -38,32 +36,31 @@ public:
 				cycleCount++;
 			}
 			clock_gettime(CLOCK_REALTIME, &endTime);
-			timeDelta = timeElapsed(startTime, endTime)/1000000;
+			timeDelta = timeElapsed(startTime, endTime) / 1000000;
 			if(timeDelta/10 == (m_timeCycle.size()+1))
 			{
 				m_timeCycle.emplace_back(i);
-				//TODO - this will move to logger
-				std::cout << "added to cycleList" << std::endl;
+				LOG_DEBUG("added to cycleList");
 				i+=2;
 			} else if(timeDelta/10 > (m_timeCycle.size()+1)) {
-				//TODO - also move this to logger
-				std::cout << "numCycles: " << std::to_string(i) <<  "\ttimeElapsed: " << std::to_string(timeDelta) <<"\t currentValIndexWouldBe: " << std::to_string(timeDelta/10) <<  "\tTimeWeAreLookingFor: " << std::to_string(m_timeCycle.size()+1) << std::endl;
+				LOG_DEBUG("numCycles: %lu, \ttimeElapsed: %lu, \tcurrentValIndexWouldBe: %lu, \ttimeWeAreLookingFor %lu", i, timeDelta, timeDelta / 10, m_timeCycle.size() + 1);
 				i-=2;	
 			} else {
-				std::cout << "numCycles: " << std::to_string(i) <<  "\ttimeElapsed: " << std::to_string(timeDelta) <<"\t currentValIndexWouldBe: " << std::to_string(timeDelta/10) <<  "\tTimeWeAreLookingFor: " << std::to_string(m_timeCycle.size()+1) << std::endl;
-				i+=2;
+				LOG_DEBUG("numCycles: %lu, \ttimeElapsed: %lu, \tcurrentValIndexWouldBe: %lu, \ttimeWeAreLookingFor %lu", i, timeDelta, timeDelta / 10, m_timeCycle.size() + 1);
+				i += 2;
 			}
 
 			if((m_timeCycle.size()+1)*10 > m_period){
 				break;
 			}
 		}
+
 		//uncomment below to have it print vector when cpu is constructed
-		/*
 		for(size_t i = 0; i < m_timeCycle.size(); i ++) {
-			std::cout << "time: " << std::to_string((i+1)*10) << "\tCycleCount: " << std::to_string(m_timeCycle[i]) << std::endl;
+			LOG_DEBUG("time: %lu, \tcycleCount: %lu\n", (i + 1) * 10, m_timeCycle[i]);
 		}
-		*/
+
+		LOG_DEBUG("Finished cpu clock sampling");
 	}
 
 	//starts the clock at the current time
@@ -83,8 +80,8 @@ public:
 		size_t delta = timeElapsed(m_checkPoint, currentTime);
 		LOG_DEBUG("Clock cycle took %lu of %lu nanoseconds", delta, m_period);
 		if(delta < m_period) {
-			//TODO wait the remaining number of nanoseconds somehow
-			//size_t leftover = m_period - delta;
+			//wait the remaining number of nanoseconds
+			waitForTime(m_period - delta);
 		}
 		else {
 			//the cycle was too slow, log an error and kill the program unless NO_CLOCK is defined
@@ -114,7 +111,7 @@ private:
 		return newNano - oldNano;
 	}
 	
-	void waitForTime(long timeToWait) {
+	void waitForTime(size_t timeToWait) {
 		size_t cycle = 0;
 		if(timeToWait < 25) {
 			while(cycle < m_timeCycle[0]) {

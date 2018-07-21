@@ -16,7 +16,7 @@ CXX_EXTRA_DEFINES := $(CXX_EXTRA_DEFINES) NO_CLOCK
 endif
 
 #define cxx flags
-CXXFLAGS := -std=c++1z -Werror -Wall -Wextra -I$(INCLUDE_PATH)
+CXXFLAGS := -std=c++1z -Werror -Wall -Wextra -pthread -g -I$(INCLUDE_PATH)
 ifdef CXX_EXTRA_DEFINES
 CXXFLAGS := $(CXXFLAGS) $(foreach d, $(CXX_EXTRA_DEFINES), -D$(d))
 endif

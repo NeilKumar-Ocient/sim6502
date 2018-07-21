@@ -1,9 +1,22 @@
 #include "cpu.h"
 #include "instructions.h"
+#include <thread>
+#include <sched.h>
 
-uint8_t cpu_t::run() {
+void cpu_t::run(size_t cpuCore) {
 	//start the clock, then enter a loop to repeatedly execute the instruction at the program counter
 	LOG_DEBUG("Starting program");
+
+	//set the thread affinity to stay on the given core
+	cpu_set_t cpuSet;
+	CPU_ZERO(&cpuSet);
+	CPU_SET(cpuCore, &cpuSet);
+	//i think we could also do pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuSet);
+	int retval = sched_setaffinity(0, sizeof(cpu_set_t), &cpuSet);
+	if(retval != 0) {
+		LOG_ERROR("Failed to set scheduler affinity to pin cpu thread to core %lu", cpuCore);
+		return;
+	}
 	m_clock.start();
 
 	//TODO when do we finish the program?
@@ -15,8 +28,6 @@ uint8_t cpu_t::run() {
 		//execute the instruction
 		m_pc = executeInstruction(opCode);
 	}
-
-	return 0;
 }
 
 uint16_t cpu_t::executeInstruction(uint8_t opCode) {

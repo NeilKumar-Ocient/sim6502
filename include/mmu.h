@@ -3,7 +3,7 @@
 
 #include <array>
 
-static constexpr size_t addressSpaceSize = 1024 * 64;
+static constexpr size_t ADDRESS_SPACE_SIZE = 1024 * 64;
 
 //the mmu, responsible for holding and reading from / writing to memory
 //also handles memory redirects of various kinds including port IO
@@ -32,7 +32,7 @@ public:
 		m_mem[address] = value;
 	}
 private:
-	std::array<uint8_t, addressSpaceSize> m_mem; //the memory itself, always 64k in size
+	std::array<uint8_t, ADDRESS_SPACE_SIZE> m_mem; //the memory itself, always 64k in size
 };
 
 #endif

@@ -6,11 +6,11 @@
 #include "log.h"
 #include <vector>
 
-static constexpr uint16_t stackOffset = 256;
-static constexpr size_t smallProgramSize = addressSpaceSize / 4;
-static constexpr size_t bigProgramSize = smallProgramSize * 2;
-static constexpr size_t programOffset = addressSpaceSize / 2;
-static constexpr size_t cpuClockFrequency =  1789772500; //the clock frequency for the cpu in mHz, not in Hz b/c we want to run at a fraction of a Hz without using a double
+static constexpr uint16_t STACK_OFFSET = 256;
+static constexpr size_t SMALL_PROGRAM_SIZE = ADDRESS_SPACE_SIZE / 4;
+static constexpr size_t BIG_PROGRAM_SIZE = SMALL_PROGRAM_SIZE * 2;
+static constexpr size_t PROGRAM_OFFSET = ADDRESS_SPACE_SIZE / 2;
+static constexpr size_t CPU_CLOCK_FREQUENCY =  1789772500; //the clock frequency for the cpu in mHz, not in Hz b/c we want to run at a fraction of a Hz without using a double
 
 //flag enum
 enum flag_t {
@@ -24,14 +24,14 @@ enum flag_t {
 };
 
 //flag bit masks
-static constexpr uint8_t carryMask = 0x01;
-static constexpr uint8_t zeroMask = 0x02;
-static constexpr uint8_t interruptDisableMask = 0x04;
-static constexpr uint8_t decimalMask = 0x08;
-static constexpr uint8_t breakMask = 0x10;
-static constexpr uint8_t overflowMask = 0x20;
-static constexpr uint8_t negativeMask = 0x40;
-static constexpr std::array<uint8_t, 7> flagMasks = {carryMask, zeroMask, interruptDisableMask, decimalMask, breakMask, overflowMask, negativeMask};
+static constexpr uint8_t CARRY_MASK = 0x01;
+static constexpr uint8_t ZERO_MASK = 0x02;
+static constexpr uint8_t INTERUPT_DISABLE_MASK = 0x04;
+static constexpr uint8_t DECIMAL_MASK = 0x08;
+static constexpr uint8_t BREAK_MASK = 0x10;
+static constexpr uint8_t OVERFLOW_MASK = 0x20;
+static constexpr uint8_t NEGATIVE_MASK = 0x40;
+static constexpr std::array<uint8_t, 7> flagMasks = {CARRY_MASK, ZERO_MASK, INTERUPT_DISABLE_MASK, DECIMAL_MASK, BREAK_MASK, OVERFLOW_MASK, NEGATIVE_MASK};
 
 //the cpu, this is responsible for reading program instructions and executing them
 class cpu_t {
@@ -39,20 +39,20 @@ public:
 	//constructor, takes in an either 16K or 32K program and loads that into the higher memory addresses
 	//if a 16k program is passed in we load that into memory twice so that the high 32k is always used
 	cpu_t(const std::vector<uint8_t>& program, const std::string& logFile) :
-		LOGGER(logFile), m_clock(cpuClockFrequency, LOGGER), m_pc(0), m_sp(255), m_a(0), m_x(0), m_y(0), m_flags(0)
+		LOGGER(logFile), m_clock(CPU_CLOCK_FREQUENCY, LOGGER), m_pc(0), m_sp(255), m_a(0), m_x(0), m_y(0), m_flags(0)
 	{
-			if(program.size() == smallProgramSize) {
+			if(program.size() == SMALL_PROGRAM_SIZE) {
 				//load the small program twice
 				for(size_t i = 0; i < 2; ++i) {
-					for(size_t j = 0; j < smallProgramSize; ++j) {
-						m_mmu.write(programOffset + (i * smallProgramSize) + j, program[j]);
+					for(size_t j = 0; j < SMALL_PROGRAM_SIZE; ++j) {
+						m_mmu.write(PROGRAM_OFFSET + (i * SMALL_PROGRAM_SIZE) + j, program[j]);
 					}
 				}
 			}
-			else if(program.size() == bigProgramSize) {
+			else if(program.size() == BIG_PROGRAM_SIZE) {
 				//load the big program
-				for(size_t i = 0; i < bigProgramSize; ++i) {
-					m_mmu.write(programOffset + i, program[i]);
+				for(size_t i = 0; i < BIG_PROGRAM_SIZE; ++i) {
+					m_mmu.write(PROGRAM_OFFSET + i, program[i]);
 				}
 			}
 			else {
@@ -67,9 +67,9 @@ public:
 	cpu_t& operator=(const cpu_t& rhs) = delete;
 	cpu_t& operator=(cpu_t&& rhs) = delete;
 
-	//TODO not really sure how to determine when a program ends and what it returns
-	//runs the program
-	uint8_t run();
+	//runs the program, it is expected that this is called by starting a thread
+	//takes in the cpuCore this thread should run on so that we hit clock cycles on time
+	void run(size_t cpuCore);
 
 	//functions to interact with the registers
 	uint8_t getA() {
@@ -117,12 +117,12 @@ public:
 
 	void pushStack(uint8_t value) {
 		//push the given value onto the stack and decrement the stack register
-		m_mmu.write(stackOffset + m_sp--, value);
+		m_mmu.write(STACK_OFFSET + m_sp--, value);
 	}
 
 	uint8_t pullStack() {
 		//return the current value on the stack and increment the stack register
-		return m_mmu.read(stackOffset + m_sp++);
+		return m_mmu.read(STACK_OFFSET + m_sp++);
 	}
 
 	//there is only a get for the program counter

@@ -1,10 +1,11 @@
 #include "cpu.h"
+#include <thread>
 
 int main() {
 	//just testing for compilation
-	std::vector<uint8_t> program(bigProgramSize, 0);
+	std::vector<uint8_t> program(BIG_PROGRAM_SIZE, 0);
 	cpu_t cpu(program, "cpu.log");
-	cpu.run();
-
+	std::thread cpuThread(&cpu_t::run, &cpu, 0);
+	cpuThread.join();
 	return 0;
 }

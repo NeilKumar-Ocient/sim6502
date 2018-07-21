@@ -37,7 +37,8 @@ args_t getArgs(cpu_t* cpu) {
 	args_t args;
 	if constexpr(MODE == addressMode_t::ZERO_PAGE) {
 		//read pc + 1
-		uint8_t zeroOffset = cpu->getPc() + 1;
+		uint8_t zeroOffset = cpu->read(cpu->getPc() + 1);
+		cpu->cycle();
 		assert(cpu->getPc() + 1 < 256); //just a sanity check
 		//get the value there and store that as the argument
 		args.m_arg1 = cpu->read(zeroOffset);
@@ -109,7 +110,7 @@ template<addressMode_t MODE>
 uint16_t AND(cpu_t* cpu) {
 	args_t args = getArgs<MODE>(cpu);
 	cpu->setA(cpu->getA() & args.m_arg1);
-	return cpu->getPc();
+	return getNewPc<MODE>(cpu->getPc());
 }
 
 //bitwise or with accumulator

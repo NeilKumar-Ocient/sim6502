@@ -136,8 +136,43 @@ args_t getArgs(cpu_t* cpu) {
     if constexpr(MODE == addressMode_t::ACCUMULATOR) {
         cpu->cycle();
     }
+    /*
+     * Immediate: instructions operate directly on a constant supplied as an operand (pc + 1)
+     */
+    if constexpr(MODE == addressMode_t::IMMEDIATE) {
+        cpu->cycle();
+        args.m_arg1 = cpu->read(cpu->getPc());
+        cpu->cycle();
+    }
+    /*
+     * Indexed Indirect X 
+     */
+    if constexpr(MODE == addressMode_t::INDIRECT_X) {
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1) + X;
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        uint16_t realAddr = cpu->read(addressToAccess);
+        realAddr = realAddr & (cpu->read(addressToAccess + 1) << 8);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        args.m_arg1 = cpu->read(realAddr);    
+    }
+    /*
+     * Indexed Indirect Y 
+     */
+    if constexpr(MODE == addressMode_t::INDIRECT_X) {
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1) + Y;
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        uint16_t realAddr = cpu->read(addressToAccess);
+        realAddr = realAddr & (cpu->read(addressToAccess + 1) << 8);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        args.m_arg1 = cpu->read(realAddr);    
+    }
 
-	//TODO write the rest of the cases
+    //TODO: Relative Case, This might be better off handled directly in the instruction implemenation? Its only used on conditional branches.
+
     return args;
 }
 

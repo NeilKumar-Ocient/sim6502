@@ -148,7 +148,7 @@ args_t getArgs(cpu_t* cpu) {
      * Indexed Indirect X 
      */
     if constexpr(MODE == addressMode_t::INDIRECT_X) {
-        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1) + X;
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1) + cpu->getX();
         cpu->cycle();
         assert(cpu->getPc() + 1 < 256);
         uint16_t realAddr = cpu->read(addressToAccess);
@@ -161,7 +161,7 @@ args_t getArgs(cpu_t* cpu) {
      * Indexed Indirect Y 
      */
     if constexpr(MODE == addressMode_t::INDIRECT_X) {
-        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1) + Y;
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1) + cpu->getY();
         cpu->cycle();
         assert(cpu->getPc() + 1 < 256);
         uint16_t realAddr = cpu->read(addressToAccess);

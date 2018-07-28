@@ -83,7 +83,7 @@ args_t getArgs(cpu_t* cpu) {
         cpu->cycle();
     }
     /*
-     * Absolute: data to operate on is in 2 operands supplied + X register, LSB first. MEM[ MEM[ PC + 2 ]::MEM[ PC + 1] + X]
+     * Absolute X: data to operate on is in 2 operands supplied + X register, LSB first. MEM[ MEM[ PC + 2 ]::MEM[ PC + 1] + X]
      */
     if constexpr(MODE == addressMode_t::ABSOLUTE_X) {
         uint16_t addressToAccess = cpu->read(cpu->getPc() + 1);
@@ -96,7 +96,7 @@ args_t getArgs(cpu_t* cpu) {
         cpu->cycle();
     }
     /*
-     * Absolute: data to operate on is in 2 operands supplied + Y register, LSB first. MEM[ MEM[ PC + 2 ]::MEM[ PC + 1] + X]
+     * Absolute Y: data to operate on is in 2 operands supplied + Y register, LSB first. MEM[ MEM[ PC + 2 ]::MEM[ PC + 1] + X]
      */
     if constexpr(MODE == addressMode_t::ABSOLUTE_X) {
         uint16_t addressToAccess = cpu->read(cpu->getPc() + 1);
@@ -108,6 +108,22 @@ args_t getArgs(cpu_t* cpu) {
         args.m_arg1 = cpu->read(addressToAccess);
         cpu->cycle();
     }
+    /*
+     * Indirect: Set PC to MEM[ MEM[PC + 1]::MEM[PC + 2]]::MEM[ MEM[PC + 1]::MEM[PC + 2] + 1]
+     *      --This mode is pretty much only used for JMP instructions
+     */
+    if constexpr(MODE == addressMode_t::INDIRECT) {
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        addressToAccess = addressToAccess & (cpu->read(cpu->getPc() +1) << 8);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        uint16_t jumpAddress = cpu->read(addressToAccess);
+        jumpAddress = jumpAddress & (cpu->read(addressToAccess + 1) << 8);
+        cpu->setPc(jumpAddress);
+    }
+
 	//TODO write the rest of the cases
     return args;
 }

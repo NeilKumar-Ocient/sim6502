@@ -121,7 +121,20 @@ args_t getArgs(cpu_t* cpu) {
         assert(cpu->getPc() + 1 < 256);
         uint16_t jumpAddress = cpu->read(addressToAccess);
         jumpAddress = jumpAddress & (cpu->read(addressToAccess + 1) << 8);
+        cpu->cycle();
         cpu->setPc(jumpAddress);
+    }
+    /*
+     *  Implied: instructions that do not require access to operands stored in memory: basically just cycle the cpu (NOP: pc + 1)
+     */
+    if constexpr(MODE == addressMode_t::IMPLIED) {
+        cpu->cycle();
+    }
+    /*
+     * Accumumlator: instructions that operate directly on the contents of the accumulator: just cycle the cpu once (pc + 1)
+     */
+    if constexpr(MODE == addressMode_t::ACCUMULATOR) {
+        cpu->cycle();
     }
 
 	//TODO write the rest of the cases

@@ -35,7 +35,10 @@ struct args_t {
 template<addressMode_t MODE>
 args_t getArgs(cpu_t* cpu) {
 	args_t args;
-	if constexpr(MODE == addressMode_t::ZERO_PAGE) {
+	/*
+     *zero page case, arg is the value of mem[ mem[pc + 1] ]
+     */
+    if constexpr(MODE == addressMode_t::ZERO_PAGE) {
 		//read pc + 1
 		uint8_t zeroOffset = cpu->read(cpu->getPc() + 1);
 		cpu->cycle();
@@ -44,8 +47,42 @@ args_t getArgs(cpu_t* cpu) {
 		args.m_arg1 = cpu->read(zeroOffset);
 		cpu->cycle();
 	}
+    /*
+     * Zero page X: arg is the value of mem[ mem[pc + 1] + X ]
+     */
+    if constexpr(MODE == addressMode_t::ZERO_PAGE_X) {
+        //zero offset is MEM[ MEM[pc + 1] + X] register
+        uint8_t zeroOffset = cpu->read(cpu->getPc() + 1) + cpu->getX();
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256); //sanity check
+        args.m_arg1 = cpu->read(zeroOffset);
+        cpu->cycle();
+    }
+    /*
+     * Zero Page Y: arg is the value of mem[ mem[pc + 1] + Y ]
+     */
+    if constexpr(MODE == addressMode_t::ZERO_PAGE_Y) {
+        //zero offset is MEM[ MEM[pc + 1] + Y ]
+        uint8_t zeroOffset = cpu->read(cpu->getPc() + 1) + cpu->getY();
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);//sanity check
+        args.m_arg1 = cpu->read(zeroOffset);
+        cpu->cycle();
+    }
+    /*
+     * Absolute: data to operate on is in 2 operands supplied, LSB first MEM[ MEM[ PC + 2 ] :: MEM[ PC + 1] ]
+     */
+    if constexpr(MODE == addressMode_t::ABSOLUTE) {
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1);
+        addressToAccess = addressToAccess & (cpu->read(cpu->getPc() +1) << 8);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        args.m_arg1 = cpu->read(addressToAccess);
+        cpu->cycle();
+    }
+
 	//TODO write the rest of the cases
-	return args;
+    return args;
 }
 
 //a helper function that returns the new pc given the current pc, depends on addressing mode

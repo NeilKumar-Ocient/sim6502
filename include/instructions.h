@@ -70,17 +70,44 @@ args_t getArgs(cpu_t* cpu) {
         cpu->cycle();
     }
     /*
-     * Absolute: data to operate on is in 2 operands supplied, LSB first MEM[ MEM[ PC + 2 ] :: MEM[ PC + 1] ]
+     * Absolute: data to operate on is in 2 operands supplied, LSB first. MEM[ MEM[ PC + 2 ]::MEM[ PC + 1] ]
      */
     if constexpr(MODE == addressMode_t::ABSOLUTE) {
         uint16_t addressToAccess = cpu->read(cpu->getPc() + 1);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
         addressToAccess = addressToAccess & (cpu->read(cpu->getPc() +1) << 8);
         cpu->cycle();
         assert(cpu->getPc() + 1 < 256);
         args.m_arg1 = cpu->read(addressToAccess);
         cpu->cycle();
     }
-
+    /*
+     * Absolute: data to operate on is in 2 operands supplied + X register, LSB first. MEM[ MEM[ PC + 2 ]::MEM[ PC + 1] + X]
+     */
+    if constexpr(MODE == addressMode_t::ABSOLUTE_X) {
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        addressToAccess = (addressToAccess & (cpu->read(cpu->getPc() + 1) << 8)) + cpu->getX();
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        args.m_arg1 = cpu->read(addressToAccess);
+        cpu->cycle();
+    }
+    /*
+     * Absolute: data to operate on is in 2 operands supplied + Y register, LSB first. MEM[ MEM[ PC + 2 ]::MEM[ PC + 1] + X]
+     */
+    if constexpr(MODE == addressMode_t::ABSOLUTE_X) {
+        uint16_t addressToAccess = cpu->read(cpu->getPc() + 1);
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        addressToAccess = (addressToAccess & (cpu->read(cpu->getPc() + 1) << 8)) + cpu->getY();
+        cpu->cycle();
+        assert(cpu->getPc() + 1 < 256);
+        args.m_arg1 = cpu->read(addressToAccess);
+        cpu->cycle();
+    }
 	//TODO write the rest of the cases
     return args;
 }

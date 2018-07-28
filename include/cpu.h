@@ -131,6 +131,11 @@ public:
 		return m_pc;
 	}
 
+    //this method is for indirect addressing and is pretty much only used for the JMP instruction
+    void setPc(uint16_t addr) {
+        m_pc = addr;
+    }
+
 	//calls cycle() on the clock to notify that 1 clock cycle of work has occurred
 	void cycle() {
 		m_clock.cycle();

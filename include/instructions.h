@@ -120,9 +120,8 @@ args_t getArgs(cpu_t* cpu) {
         cpu->cycle();
         assert(cpu->getPc() + 1 < 256);
         uint16_t jumpAddress = cpu->read(addressToAccess);
-        jumpAddress = jumpAddress & (cpu->read(addressToAccess + 1) << 8);
+        args.m_arg1 = jumpAddress & (cpu->read(addressToAccess + 1) << 8);
         cpu->cycle();
-        cpu->setPc(jumpAddress);
     }
     /*
      *  Implied: instructions that do not require access to operands stored in memory: basically just cycle the cpu (NOP: pc + 1)
